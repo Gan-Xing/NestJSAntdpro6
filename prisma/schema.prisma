@@ -1,0 +1,55 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model Role {
+  id           Int           @id @default(autoincrement())
+  name         String        @unique
+  createdAt    DateTime      @default(now())
+  updatedAt    DateTime      @updatedAt
+  permissions  Permission[]  // 更改为Permission模型的数组
+  users        User[]        @relation("UserRoles") // 更改为User模型的数组，并设置关系名称
+}
+
+model Permission {
+  id                Int             @id @default(autoincrement())
+  name              String
+  action            String
+  path              String
+  createdAt         DateTime        @default(now())
+  updatedAt         DateTime        @updatedAt
+  permissionGroup   PermissionGroup @relation(fields: [permissionGroupId], references: [id])
+  permissionGroupId Int
+  roles             Role[]          // 添加角色数组字段
+}
+
+model PermissionGroup {
+  id           Int              @id @default(autoincrement())
+  name         String
+  parentId     Int?  
+  createdAt    DateTime         @default(now())
+  updatedAt    DateTime         @updatedAt
+  permissions  Permission[]     // 添加权限数组字段
+  parent       PermissionGroup? @relation("PermissionGroupsToPermissionGroup", fields: [parentId], references: [id])
+  children     PermissionGroup[] @relation("PermissionGroupsToPermissionGroup")
+}
+
+model User {
+  id           Int      @id @default(autoincrement())
+  email        String   @unique
+  password     String
+  createdAt    DateTime @default(now())
+  roles        Role[]   @relation("UserRoles") // 添加角色数组字段，并设置关系名称
+  status       String   // 添加用户状态字段
+  username     String   // 添加用户名字段
+  gender       Int      // 添加性别字段
+  departmentId Int      // 添加部门ID字段
+}
