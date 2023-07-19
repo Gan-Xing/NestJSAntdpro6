@@ -1,18 +1,13 @@
 import { Injectable } from '@nestjs/common';
-import { PrismaClient, User } from '@prisma/client';
+import { PrismaService } from 'src/prisma/prisma.service';
+import { User } from '@prisma/client';
 import { CreateUserDto } from './dto/create-user.dto';
 import { UpdateUserDto } from './dto/update-user.dto';
 import { hash } from 'bcrypt';
 
 @Injectable()
 export class UserService {
-  private prisma: PrismaClient;
-  constructor() {
-    this.prisma = new PrismaClient();
-    // this.createAdminUser(); // 调用函数
-    // this.createDebugUsers(); // 创建调试用户
-  }
-
+  constructor(private prisma: PrismaService) {}
   // user.service.ts
   async create(createUserDto: CreateUserDto): Promise<User> {
     const hashedPassword = await hash(createUserDto.password, 10); // 使用bcrypt进行密码加密
