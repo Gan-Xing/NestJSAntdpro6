@@ -12,12 +12,13 @@ export class UserService {
   async create(createUserDto: CreateUserDto): Promise<User> {
     const hashedPassword = await hash(createUserDto.password, 10); // 使用bcrypt进行密码加密
 
-    const role = await this.prisma.role.findUnique({
-      where: { name: createUserDto.role },
+    // 在这里处理一个角色ID数组
+    const roles = await this.prisma.role.findMany({
+      where: { id: { in: createUserDto.roles } },
     });
 
-    if (!role) {
-      throw new Error(`Role ${createUserDto.role} does not exist`);
+    if (roles.length !== createUserDto.roles.length) {
+      throw new Error(`Some roles do not exist`);
     }
 
     return this.prisma.user.create({
@@ -25,12 +26,12 @@ export class UserService {
         email: createUserDto.email,
         password: hashedPassword,
         roles: {
-          connect: { id: role.id }, // 这里是关联用户和角色
+          connect: roles.map((role) => ({ id: role.id })), // 连接多个角色
         },
         status: createUserDto.status,
-        username: createUserDto.username, // 使用用户名
-        gender: createUserDto.gender, // 使用性别
-        departmentId: createUserDto.departmentId, // 使用部门ID
+        username: createUserDto.username,
+        gender: createUserDto.gender,
+        departmentId: createUserDto.departmentId,
       },
     });
   }
@@ -49,11 +50,32 @@ export class UserService {
     });
   }
 
-  // 更改updateUserDto的类型定义为任意，因为更新操作可能涉及任何字段
   async update(id: number, updateUserDto: UpdateUserDto): Promise<User> {
+    const { roles, ...otherData } = updateUserDto;
+
+    let rolesUpdate;
+
+    if (roles) {
+      // 如果传递了角色ID，处理它们
+      const roleObjects = await this.prisma.role.findMany({
+        where: { id: { in: roles } },
+      });
+
+      if (roleObjects.length !== roles.length) {
+        throw new Error(`Some roles do not exist`);
+      }
+
+      rolesUpdate = {
+        connect: roleObjects.map((role) => ({ id: role.id })),
+      };
+    }
+
     return this.prisma.user.update({
       where: { id: id },
-      data: updateUserDto,
+      data: {
+        ...otherData,
+        ...(rolesUpdate && { roles: rolesUpdate }),
+      },
     });
   }
 
