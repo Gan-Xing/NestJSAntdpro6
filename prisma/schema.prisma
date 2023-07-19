@@ -53,3 +53,13 @@ model User {
   gender       Int      // 添加性别字段
   departmentId Int      // 添加部门ID字段
 }
+
+model Article {
+  id          Int      @id @default(autoincrement())
+  title       String   @unique
+  description String?
+  body        String
+  published   Boolean  @default(false)
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+}
