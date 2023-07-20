@@ -10,27 +10,43 @@ import {
   ApiCreatedResponse,
 } from '@nestjs/swagger';
 import { Public } from '../public.decorator';
-import { AuthEntity } from './entity/auth.entity';
 import { LoginDto } from './dto/login.dto';
+import { RefreshTokenDto } from './dto/refresh-token.dto';
+import { RegisterDto } from './dto/register.dto';
+import { Token } from './dto/token.dto';
 
 @Controller('auth')
 @ApiTags('auth')
 export class AuthController {
-  constructor(private readonly authService: AuthService) {}
+  constructor(private readonly auth: AuthService) {}
 
   @Public()
   @Post('login')
-  @ApiOkResponse({ type: AuthEntity })
+  @ApiOkResponse({ type: Token })
   @ApiBadRequestResponse({ description: 'Invalid request body' })
   @ApiUnauthorizedResponse({ description: 'Invalid password' })
   @ApiNotFoundResponse({ description: 'No user found for email' })
-  login(@Body() { email, password }: LoginDto) {
-    return this.authService.login(email, password);
+  async login(@Body() { email, password }: LoginDto) {
+    const { accessToken, refreshToken } = await this.auth.login(
+      email.toLowerCase(),
+      password,
+    );
+    return {
+      accessToken,
+      refreshToken,
+    };
   }
 
+  @Public()
+  @Post('register')
+  @ApiCreatedResponse({ type: Token })
+  @ApiBadRequestResponse({ description: 'Invalid request body' })
+  async register(@Body() createUserDto: RegisterDto) {
+    return this.auth.register(createUserDto);
+  }
   @Post('refresh')
   @ApiCreatedResponse({ description: 'Refresh user token.' })
-  async refresh(@Body('refreshToken') refreshToken: string) {
-    return this.authService.refreshToken(refreshToken);
+  async refresh(@Body('refreshToken') { refreshToken }: RefreshTokenDto) {
+    return this.auth.refreshToken(refreshToken);
   }
 }

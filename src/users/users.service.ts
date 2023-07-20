@@ -3,15 +3,19 @@ import { PrismaService } from 'src/prisma/prisma.service';
 import { User } from '@prisma/client';
 import { CreateUserDto } from './dto/create-user.dto';
 import { UpdateUserDto } from './dto/update-user.dto';
-import { hash } from 'bcrypt';
+import { PasswordService } from 'src/password/password.service';
 
-export const roundsOfHashing = 10;
 @Injectable()
-export class UserService {
-  constructor(private prisma: PrismaService) {}
+export class UsersService {
+  constructor(
+    private prisma: PrismaService,
+    private passwordService: PasswordService,
+  ) {}
   // user.service.ts
   async create(createUserDto: CreateUserDto): Promise<User> {
-    const hashedPassword = await hash(createUserDto.password, roundsOfHashing); // 使用bcrypt进行密码加密
+    const hashedPassword = await this.passwordService.hashPassword(
+      createUserDto.password,
+    );
 
     // 在这里处理一个角色ID数组
     const roles = await this.prisma.role.findMany({
@@ -71,9 +75,8 @@ export class UserService {
       };
     }
     if (updateUserDto.password) {
-      updateUserDto.password = await hash(
+      updateUserDto.password = await this.passwordService.hashPassword(
         updateUserDto.password,
-        roundsOfHashing,
       );
     }
 

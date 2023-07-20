@@ -4,22 +4,34 @@ import { AuthController } from './auth.controller';
 import { PassportModule } from '@nestjs/passport';
 import { JwtModule } from '@nestjs/jwt';
 import { PrismaModule } from 'src/prisma/prisma.module';
-import { UserModule } from 'src/user/user.module';
 import { JwtStrategy } from './jwt.strategy';
-
-export const jwtSecret = 'zjP9h6ZI5LoSKCRj';
+import { ConfigModule, ConfigService } from '@nestjs/config';
+import { SecurityConfig } from 'src/common/configs/config.interface';
+import { PasswordService } from '../password/password.service';
+import { PasswordModule } from 'src/password/password.module';
 
 @Module({
   imports: [
     PrismaModule,
     PassportModule,
-    JwtModule.register({
-      secret: jwtSecret,
-      signOptions: { expiresIn: '5m' }, // e.g. 30s, 7d, 24h
+    ConfigModule,
+    PasswordModule,
+    JwtModule.registerAsync({
+      useFactory: async (configService: ConfigService) => {
+        const securityConfig = configService.get<SecurityConfig>('security');
+        console.log('securityConfig:', securityConfig);
+        return {
+          secret: configService.get<string>('auth.jwtAccessSecret'),
+          signOptions: {
+            expiresIn: securityConfig.expiresIn, // e.g. 30s, 7d, 24h
+          },
+        };
+      },
+      inject: [ConfigService],
     }),
-    UserModule,
   ],
   controllers: [AuthController],
-  providers: [AuthService, JwtStrategy],
+  providers: [AuthService, JwtStrategy, PasswordService],
+  exports: [AuthService, PasswordService], // 导出 PasswordService
 })
 export class AuthModule {}
