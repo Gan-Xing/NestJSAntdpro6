@@ -44,14 +44,16 @@ model PermissionGroup {
 
 model User {
   id           Int      @id @default(autoincrement())
+  username     String   // 添加用户名字段
   email        String   @unique
   password     String
-  createdAt    DateTime @default(now())
-  roles        Role[]   @relation("UserRoles") // 添加角色数组字段，并设置关系名称
   status       String   // 添加用户状态字段
-  username     String   // 添加用户名字段
   gender       Int      // 添加性别字段
   departmentId Int      // 添加部门ID字段
+  roles        Role[]   @relation("UserRoles") // 添加角色数组字段，并设置关系名称
+  articles     Article[]
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
 }
 
 model Article {
@@ -62,4 +64,6 @@ model Article {
   published   Boolean  @default(false)
   createdAt   DateTime @default(now())
   updatedAt   DateTime @updatedAt
+  author      User?    @relation(fields: [authorId], references: [id])
+  authorId    Int?
 }
