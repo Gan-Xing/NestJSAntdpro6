@@ -5,12 +5,13 @@ import { CreateUserDto } from './dto/create-user.dto';
 import { UpdateUserDto } from './dto/update-user.dto';
 import { hash } from 'bcrypt';
 
+export const roundsOfHashing = 10;
 @Injectable()
 export class UserService {
   constructor(private prisma: PrismaService) {}
   // user.service.ts
   async create(createUserDto: CreateUserDto): Promise<User> {
-    const hashedPassword = await hash(createUserDto.password, 10); // 使用bcrypt进行密码加密
+    const hashedPassword = await hash(createUserDto.password, roundsOfHashing); // 使用bcrypt进行密码加密
 
     // 在这里处理一个角色ID数组
     const roles = await this.prisma.role.findMany({
@@ -68,6 +69,12 @@ export class UserService {
       rolesUpdate = {
         connect: roleObjects.map((role) => ({ id: role.id })),
       };
+    }
+    if (updateUserDto.password) {
+      updateUserDto.password = await hash(
+        updateUserDto.password,
+        roundsOfHashing,
+      );
     }
 
     return this.prisma.user.update({

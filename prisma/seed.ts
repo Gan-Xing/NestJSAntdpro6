@@ -3,6 +3,7 @@ import { hash } from 'bcrypt';
 
 // Initialize the Prisma Client
 const prisma = new PrismaClient();
+const roundsOfHashing = 10;
 
 async function createAdminUser() {
   // First, check if an admin user already exists
@@ -143,10 +144,45 @@ async function createArticles() {
   console.log({ user1, user2, post1, post2, post3 });
 }
 
+async function updateArticles() {
+  const passwordSabin = await hash('password-sabin', roundsOfHashing);
+  const passwordAlex = await hash('password-alex', roundsOfHashing);
+  const user1 = await prisma.user.upsert({
+    where: { email: 'sabin@adams.com' },
+    update: {
+      password: passwordSabin,
+    },
+    create: {
+      email: 'sabin@adams.com',
+      username: 'Sabin Adams',
+      password: passwordSabin,
+      status: 'Active',
+      gender: 1,
+      departmentId: 1,
+    },
+  });
+  const user2 = await prisma.user.upsert({
+    where: { email: 'alex@ruheni.com' },
+    update: {
+      password: passwordAlex,
+    },
+    create: {
+      email: 'alex@ruheni.com',
+      username: 'Alex Ruheni',
+      password: passwordAlex,
+      status: 'Active',
+      gender: 1,
+      departmentId: 1,
+    },
+  });
+  console.log(user1, user2);
+}
+
 async function seed() {
   await createAdminUser();
   await createDebugUsers();
   await createArticles();
+  await updateArticles();
 }
 
 // Execute the seed function

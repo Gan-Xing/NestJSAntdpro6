@@ -1,7 +1,6 @@
 import { Module } from '@nestjs/common';
 import { UserService } from './user.service';
 import { UserController } from './user.controller';
-import { AuthService } from './auth.service';
 import { JwtModule } from '@nestjs/jwt';
 import { PrismaModule } from 'src/prisma/prisma.module';
 
@@ -15,6 +14,7 @@ import { PrismaModule } from 'src/prisma/prisma.module';
     // 其他需要的模块...
   ],
   controllers: [UserController],
-  providers: [UserService, AuthService],
+  providers: [UserService],
+  exports: [UserService],
 })
 export class UserModule {}
