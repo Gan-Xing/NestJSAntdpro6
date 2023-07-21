@@ -1,29 +1,29 @@
-import type { Config } from './config.interface';
+import { Config } from './config.interface';
 
 const config: Config = {
+  isProd: process.env.NODE_ENV === 'production',
   nest: {
-    port: 3000,
+    port: parseInt(process.env.PORT) || 3000,
   },
   cors: {
-    enabled: true,
+    enabled: process.env.CORS_ENABLED === 'true',
   },
   swagger: {
-    enabled: true,
-    title: 'Nestjs FTW',
-    description: 'The nestjs API description',
-    version: '1.5',
-    path: 'api',
-  },
-  graphql: {
-    playgroundEnabled: true,
-    debug: true,
-    schemaDestination: './src/schema.graphql',
-    sortSchema: true,
+    enabled: process.env.SWAGGER_ENABLED === 'true',
+    title: process.env.SWAGGER_TITLE || 'Nestjs FTW',
+    description:
+      process.env.SWAGGER_DESCRIPTION || 'The nestjs API description',
+    version: process.env.SWAGGER_VERSION || '1.5',
+    path: process.env.SWAGGER_PATH || 'api',
   },
   security: {
-    expiresIn: '2m',
-    refreshIn: '7d',
-    bcryptSaltOrRound: 10,
+    expiresIn: process.env.SECURITY_EXPIRES_IN || '2m',
+    refreshIn: process.env.SECURITY_REFRESH_IN || '7d',
+    bcryptSaltOrRound: parseInt(process.env.SECURITY_BCRYPT_SALT) || 10,
+  },
+  jwt: {
+    accessSecret: process.env.JWT_ACCESS_SECRET || 'defaultAccessSecret',
+    refreshSecret: process.env.JWT_REFRESH_SECRET || 'defaultRefreshSecret',
   },
 };
 

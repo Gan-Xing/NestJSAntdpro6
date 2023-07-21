@@ -6,7 +6,7 @@ import { JwtModule } from '@nestjs/jwt';
 import { PrismaModule } from 'src/prisma/prisma.module';
 import { JwtStrategy } from './jwt.strategy';
 import { ConfigModule, ConfigService } from '@nestjs/config';
-import { SecurityConfig } from 'src/common/configs/config.interface';
+import { JwtConfig, SecurityConfig } from 'src/common/configs/config.interface';
 import { PasswordService } from '../password/password.service';
 import { PasswordModule } from 'src/password/password.module';
 
@@ -19,9 +19,9 @@ import { PasswordModule } from 'src/password/password.module';
     JwtModule.registerAsync({
       useFactory: async (configService: ConfigService) => {
         const securityConfig = configService.get<SecurityConfig>('security');
-        console.log('securityConfig:', securityConfig);
+        const jwtConfig = configService.get<JwtConfig>('jwt');
         return {
-          secret: configService.get<string>('auth.jwtAccessSecret'),
+          secret: jwtConfig.accessSecret,
           signOptions: {
             expiresIn: securityConfig.expiresIn, // e.g. 30s, 7d, 24h
           },

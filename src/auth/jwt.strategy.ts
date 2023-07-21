@@ -6,6 +6,7 @@ import { ConfigService } from '@nestjs/config';
 import { User } from '@prisma/client';
 import { AuthService } from './auth.service';
 import { JwtDto } from './dto/jwt.dto';
+import { JwtConfig } from 'src/common/configs/config.interface';
 
 @Injectable()
 export class JwtStrategy extends PassportStrategy(Strategy, 'jwt') {
@@ -15,7 +16,7 @@ export class JwtStrategy extends PassportStrategy(Strategy, 'jwt') {
   ) {
     super({
       jwtFromRequest: ExtractJwt.fromAuthHeaderAsBearerToken(),
-      secretOrKey: configService.get<string>('auth.jwtAccessSecret'),
+      secretOrKey: configService.get<JwtConfig>('jwt').accessSecret,
     });
   }
 

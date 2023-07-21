@@ -9,8 +9,7 @@ import { APP_GUARD } from '@nestjs/core';
 import { UsersModule } from './users/users.module';
 import { ConfigModule } from '@nestjs/config';
 import { PasswordModule } from './password/password.module';
-import authConfig from './config/auth.config';
-import commonConfig from './common/configs/config';
+import config from './common/configs/config';
 
 @Module({
   imports: [
@@ -20,7 +19,7 @@ import commonConfig from './common/configs/config';
     ArticlesModule,
     ConfigModule.forRoot({
       isGlobal: true,
-      load: [authConfig, commonConfig],
+      load: [config],
     }),
     PasswordModule,
   ],

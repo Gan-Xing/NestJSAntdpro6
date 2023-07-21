@@ -1,9 +1,10 @@
 export interface Config {
+  isProd: boolean;
   nest: NestConfig;
   cors: CorsConfig;
   swagger: SwaggerConfig;
-  graphql: GraphqlConfig;
   security: SecurityConfig;
+  jwt: JwtConfig;
 }
 
 export interface NestConfig {
@@ -33,4 +34,9 @@ export interface SecurityConfig {
   expiresIn: string;
   refreshIn: string;
   bcryptSaltOrRound: string | number;
+}
+
+export interface JwtConfig {
+  accessSecret: string;
+  refreshSecret: string;
 }
