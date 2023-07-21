@@ -8,16 +8,15 @@ import {
   Delete,
   ParseIntPipe,
 } from '@nestjs/common';
-import { UsersService } from './users.service';
-import { CreateUserDto } from './dto/create-user.dto';
-import { UpdateUserDto } from './dto/update-user.dto';
 import {
   ApiTags,
   ApiOkResponse,
   ApiCreatedResponse,
   ApiBearerAuth,
 } from '@nestjs/swagger';
-import { UserEntity } from './entities/user.entity';
+import { UsersService } from './users.service';
+import { CreateUserDto, UpdateUserDto } from './dto';
+import { UserEntity } from './entities';
 
 @Controller('api/users')
 @ApiTags('users')

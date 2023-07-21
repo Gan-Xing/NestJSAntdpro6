@@ -1,6 +1,6 @@
-import { Config } from './config.interface';
+import { Configs } from './config.interface';
 
-const config: Config = {
+const Config: Configs = {
   isProd: process.env.NODE_ENV === 'production',
   nest: {
     port: parseInt(process.env.PORT) || 3000,
@@ -27,4 +27,4 @@ const config: Config = {
   },
 };
 
-export default (): Config => config;
+export default (): Configs => Config;

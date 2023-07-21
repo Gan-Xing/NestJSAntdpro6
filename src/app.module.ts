@@ -1,29 +1,31 @@
 import {
-  ClassSerializerInterceptor,
-  Module,
-  ValidationPipe,
-} from '@nestjs/common';
-import { AppController } from './app.controller';
-import { AppService } from './app.service';
-import { PrismaModule } from './prisma/prisma.module';
-import { AuthModule } from './auth/auth.module';
-import { JwtAuthGuard } from './auth/jwt-auth.guard';
-import { ArticlesModule } from './articles/articles.module';
-
-import {
   APP_FILTER,
   APP_GUARD,
   APP_INTERCEPTOR,
   APP_PIPE,
   Reflector,
 } from '@nestjs/core';
-import { UsersModule } from './users/users.module';
+import {
+  ClassSerializerInterceptor,
+  Module,
+  ValidationPipe,
+} from '@nestjs/common';
+
 import { ConfigModule } from '@nestjs/config';
+import {
+  Config,
+  LoggingInterceptor,
+  TransformInterceptor,
+  HttpFilter,
+} from './common';
+import { PrismaModule } from './prisma/prisma.module';
+import { AuthModule } from './auth/auth.module';
+import { JwtAuthGuard } from './auth/jwt-auth.guard';
+import { ArticlesModule } from './articles/articles.module';
+import { UsersModule } from './users/users.module';
 import { PasswordModule } from './password/password.module';
-import config from './common/configs/config';
-import { TransformInterceptor } from './common/interceptors/transform.interceptor';
-import { LoggingInterceptor } from './common/interceptors/logging.interceptor';
-import { HttpFilter } from './common/filters/http.filter';
+import { AppController } from './app.controller';
+import { AppService } from './app.service';
 
 @Module({
   imports: [
@@ -33,7 +35,7 @@ import { HttpFilter } from './common/filters/http.filter';
     ArticlesModule,
     ConfigModule.forRoot({
       isGlobal: true,
-      load: [config],
+      load: [Config],
     }),
     PasswordModule,
   ],

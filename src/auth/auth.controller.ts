@@ -1,6 +1,5 @@
 // src/auth/auth.controller.ts
 import { Body, Controller, Post } from '@nestjs/common';
-import { AuthService } from './auth.service';
 import {
   ApiBadRequestResponse,
   ApiOkResponse,
@@ -9,11 +8,9 @@ import {
   ApiNotFoundResponse,
   ApiCreatedResponse,
 } from '@nestjs/swagger';
-import { Public } from '../common/decorators/public.decorator';
-import { LoginDto } from './dto/login.dto';
-import { RefreshTokenDto } from './dto/refresh-token.dto';
-import { RegisterDto } from './dto/register.dto';
-import { Token } from './dto/token.dto';
+import { Public } from '../common';
+import { AuthService } from './auth.service';
+import { LoginDto, RefreshTokenDto, RegisterDto, Token } from './dto';
 
 @Controller('auth')
 @ApiTags('auth')

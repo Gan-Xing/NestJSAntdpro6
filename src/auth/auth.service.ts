@@ -4,14 +4,13 @@ import {
   NotFoundException,
   UnauthorizedException,
 } from '@nestjs/common';
-import { PrismaService } from './../prisma/prisma.service';
+import { ConfigService } from '@nestjs/config';
 import { JwtService } from '@nestjs/jwt';
 import { User } from '@prisma/client';
-import { PasswordService } from '../password/password.service';
-import { ConfigService } from '@nestjs/config';
-import { JwtConfig, SecurityConfig } from 'src/common/configs/config.interface';
-import { Token } from './dto/token.dto';
-import { RegisterDto } from './dto/register.dto';
+import { JwtConfig, SecurityConfig } from 'src/common';
+import { PrismaService } from 'src/prisma/prisma.service';
+import { PasswordService } from 'src/password/password.service';
+import { RegisterDto, Token } from './dto';
 
 @Injectable()
 export class AuthService {
