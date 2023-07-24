@@ -46,6 +46,7 @@ export class HttpFilter implements ExceptionFilter {
       message,
       data: null,
       success: false,
+      showType: 2,
     });
   }
 }

@@ -1,5 +1,5 @@
 import { ApiProperty } from '@nestjs/swagger';
-import { IsJWT, IsNotEmpty, IsString } from 'class-validator';
+import { IsJWT, IsNotEmpty, IsNumber, IsString } from 'class-validator';
 
 export class Token {
   @IsString()
@@ -13,4 +13,14 @@ export class Token {
   @IsNotEmpty()
   @ApiProperty()
   refreshToken: string;
+
+  @IsNumber()
+  @IsNotEmpty()
+  @ApiProperty()
+  accessExpiresIn: number;
+
+  @IsNumber()
+  @IsNotEmpty()
+  @ApiProperty()
+  refreshExpiresIn: number;
 }

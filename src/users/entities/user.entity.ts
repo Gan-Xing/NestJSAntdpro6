@@ -1,7 +1,7 @@
-import { Role } from '@prisma/client';
+import { Role, User } from '@prisma/client';
 import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
-import { User } from '@prisma/client';
 import { Exclude } from 'class-transformer';
+import { ArticleEntity } from 'src/articles/entities/article.entity';
 
 export class UserEntity implements User {
   constructor(partial: Partial<UserEntity>) {
@@ -17,6 +17,9 @@ export class UserEntity implements User {
   @Exclude()
   password: string;
 
+  @Exclude()
+  hashedRt: string;
+
   @ApiProperty()
   status: string;
 
@@ -27,14 +30,20 @@ export class UserEntity implements User {
   gender: number;
 
   @ApiProperty()
-  departmentId: number;
+  isAdmin: boolean;
 
-  @ApiPropertyOptional({ isArray: true, description: '角色对象数组' })
-  roles?: Role[];
+  @ApiProperty()
+  departmentId: number;
 
   @ApiProperty()
   createdAt: Date;
 
   @ApiProperty()
   updatedAt: Date;
+
+  @ApiPropertyOptional({ isArray: true, description: '角色对象数组' })
+  roles?: Role[];
+
+  @ApiPropertyOptional({ isArray: true, description: '用户文章数组' })
+  articles?: ArticleEntity[];
 }

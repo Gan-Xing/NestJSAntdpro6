@@ -7,6 +7,7 @@ import {
   Param,
   Delete,
   ParseIntPipe,
+  Req,
 } from '@nestjs/common';
 import {
   ApiTags,
@@ -29,13 +30,21 @@ export class UsersController {
     return new UserEntity(await this.usersService.create(createUserDto));
   }
 
-  @Get()
+  @Get('all')
   // @UseGuards(JwtAuthGuard) //单独针对某个路由进行权限控制，目前已经做了全局控制，此处可以删除
   @ApiBearerAuth()
   @ApiOkResponse({ description: 'Get all users.', type: [UserEntity] }) // 多个User的数组，使用type: [User]
   async findAll() {
     const users = await this.usersService.findAll();
     return users.map((user) => new UserEntity(user));
+  }
+
+  @Get()
+  @ApiBearerAuth()
+  @ApiOkResponse({ description: 'Get current user.', type: UserEntity })
+  async findCurrent(@Req() req) {
+    // const user = await this.usersService.findOne(req.user.id);
+    return new UserEntity(req.user);
   }
 
   @Get(':id')

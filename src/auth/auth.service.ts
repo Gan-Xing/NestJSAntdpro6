@@ -23,7 +23,7 @@ export class AuthService {
   async register(registerUser: RegisterDto): Promise<Token> {
     // 确保邮箱是唯一的
     const existingUser = await this.prisma.user.findUnique({
-      where: { email: registerUser.email },
+      where: { email: registerUser.email.toLowerCase() },
     });
     if (existingUser) {
       throw new Error('Email already in use');
@@ -41,7 +41,7 @@ export class AuthService {
 
     const user = await this.prisma.user.create({
       data: {
-        email: registerUser.email,
+        email: registerUser.email.toLowerCase(),
         password: hashedPassword,
         roles: {
           connect: [{ id: defaultRole.id }], // 连接到默认角色
@@ -55,14 +55,17 @@ export class AuthService {
     });
 
     // Return a JWT
-    return this.generateTokens({
-      userId: user.id,
-    });
+    const tokens = await this.generateTokens({ userId: user.id });
+    await this.updateRtHash(user.id, tokens.refreshToken);
+
+    return tokens;
   }
 
   async login(email: string, password: string): Promise<Token> {
     // Step 1: Fetch a user with the given email
-    const user = await this.prisma.user.findUnique({ where: { email } });
+    const user = await this.prisma.user.findUnique({
+      where: { email: email.toLowerCase() },
+    });
 
     // If no user is found, throw an error
     if (!user) {
@@ -81,9 +84,54 @@ export class AuthService {
     }
 
     // Step 3: Generate a JWT containing the user's ID and return it
-    return this.generateTokens({
-      userId: user.id,
+    const tokens = await this.generateTokens({ userId: user.id });
+    await this.updateRtHash(user.id, tokens.refreshToken);
+
+    return tokens;
+  }
+
+  private generateAccessToken(payload: { userId: number }) {
+    const securityConfig = this.configService.get<SecurityConfig>('security');
+    const token = this.jwtService.sign(payload);
+    const expiresIn = this.convertExpiresInToSeconds(securityConfig.expiresIn);
+    return {
+      token,
+      expiresIn,
+    };
+  }
+
+  private generateRefreshToken(payload: { userId: number }) {
+    const securityConfig = this.configService.get<SecurityConfig>('security');
+    const jwtConfig = this.configService.get<JwtConfig>('jwt');
+
+    const token = this.jwtService.sign(payload, {
+      secret: jwtConfig.refreshSecret,
+      expiresIn: securityConfig.refreshIn,
     });
+    const expiresIn = this.convertExpiresInToSeconds(securityConfig.refreshIn);
+
+    return {
+      token,
+      expiresIn,
+    };
+  }
+
+  async refreshToken(token: string) {
+    const jwtConfig = this.configService.get<JwtConfig>('jwt');
+    const { userId } = this.jwtService.verify(token, {
+      secret: jwtConfig.refreshSecret,
+    });
+    const user = await this.validateUser(userId);
+    const isJwtValid = await this.passwordService.validatePassword(
+      token,
+      user.hashedRt,
+    );
+    if (!user || !isJwtValid) {
+      throw new UnauthorizedException();
+    }
+    const tokens = await this.generateTokens({ userId });
+    await this.updateRtHash(userId, tokens.refreshToken);
+    return tokens;
   }
 
   validateUser(userId: number): Promise<User> {
@@ -96,38 +144,37 @@ export class AuthService {
   }
 
   generateTokens(payload: { userId: number }): Token {
+    const accessToken = this.generateAccessToken(payload);
+    const refreshToken = this.generateRefreshToken(payload);
+
     return {
-      accessToken: this.generateAccessToken(payload),
-      refreshToken: this.generateRefreshToken(payload),
+      accessToken: accessToken.token,
+      refreshToken: refreshToken.token,
+      accessExpiresIn: accessToken.expiresIn,
+      refreshExpiresIn: refreshToken.expiresIn,
     };
   }
 
-  private generateAccessToken(payload: { userId: number }): string {
-    return this.jwtService.sign(payload);
-  }
-
-  private generateRefreshToken(payload: { userId: number }): string {
-    const securityConfig = this.configService.get<SecurityConfig>('security');
-    const jwtConfig = this.configService.get<JwtConfig>('jwt');
-
-    return this.jwtService.sign(payload, {
-      secret: jwtConfig.refreshSecret,
-      expiresIn: securityConfig.refreshIn,
+  private async updateRtHash(userId: number, rt: string): Promise<void> {
+    const hash = await this.passwordService.hashPassword(rt);
+    await this.prisma.user.update({
+      where: { id: userId },
+      data: { hashedRt: hash },
     });
   }
 
-  refreshToken(token: string) {
-    try {
-      const jwtConfig = this.configService.get<JwtConfig>('jwt');
-      const { userId } = this.jwtService.verify(token, {
-        secret: jwtConfig.refreshSecret,
-      });
-
-      return this.generateTokens({
-        userId,
-      });
-    } catch (e) {
-      throw new UnauthorizedException();
+  convertExpiresInToSeconds(expiresIn: string): number {
+    const expiresInNumber = parseInt(expiresIn);
+    if (expiresIn.endsWith('s')) {
+      return expiresInNumber;
+    } else if (expiresIn.endsWith('m')) {
+      return expiresInNumber * 60;
+    } else if (expiresIn.endsWith('h')) {
+      return expiresInNumber * 60 * 60;
+    } else if (expiresIn.endsWith('d')) {
+      return expiresInNumber * 60 * 60 * 24;
+    } else {
+      throw new Error(`Unable to parse expiresIn value: ${expiresIn}`);
     }
   }
 }

@@ -23,7 +23,8 @@ export class TransformInterceptor<T>
         path: context.switchToHttp().getRequest().url,
         message: 'Operation successful',
         data,
-        success: true, // Set success to true for successful responses
+        success: true,
+        showType: 0,
       })),
     );
   }
@@ -35,5 +36,6 @@ export interface Response<T> {
   path: string;
   message: string;
   data: T;
-  success: boolean; // Add a success field to the Response interface
+  success: boolean;
+  showType: number;
 }

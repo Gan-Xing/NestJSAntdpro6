@@ -6,6 +6,7 @@ import {
   IsInt,
   IsArray,
   MinLength,
+  IsBoolean,
 } from 'class-validator';
 
 export class CreateUserDto {
@@ -34,6 +35,11 @@ export class CreateUserDto {
   @IsInt()
   @IsNotEmpty()
   gender: number;
+
+  @ApiProperty()
+  @IsBoolean()
+  @IsNotEmpty()
+  isAdmin: boolean;
 
   @ApiProperty()
   @IsInt()

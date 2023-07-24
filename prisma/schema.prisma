@@ -47,13 +47,15 @@ model User {
   username     String   // 添加用户名字段
   email        String   @unique
   password     String
+  hashedRt     String?  // 添加refresh token的哈希值字段
   status       String   // 添加用户状态字段
   gender       Int      // 添加性别字段
   departmentId Int      // 添加部门ID字段
-  roles        Role[]   @relation("UserRoles") // 添加角色数组字段，并设置关系名称
-  articles     Article[]
+  isAdmin      Boolean  @default(false)
   createdAt    DateTime @default(now())
   updatedAt    DateTime @updatedAt
+  roles        Role[]   @relation("UserRoles") // 添加角色数组字段，并设置关系名称
+  articles     Article[]
 }
 
 model Article {

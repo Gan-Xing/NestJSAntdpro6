@@ -7,35 +7,51 @@ import {
   MinLength,
   MaxLength,
   IsInt,
+  IsArray,
+  IsBoolean,
 } from 'class-validator';
+import { ApiPropertyOptional } from '@nestjs/swagger';
 
 export class UpdateUserDto extends PartialType(CreateUserDto) {
+  @ApiPropertyOptional()
   @IsOptional()
   @IsEmail()
   email?: string;
 
+  @ApiPropertyOptional()
   @IsOptional()
   @IsString()
   @MinLength(8)
   @MaxLength(30)
   password?: string;
 
+  @ApiPropertyOptional({ isArray: true, type: 'number' })
   @IsOptional()
-  @IsString()
-  role?: string;
+  @IsArray()
+  @IsInt({ each: true })
+  roles?: number[]; // 修改为角色ID的数组
 
+  @ApiPropertyOptional()
   @IsOptional()
   @IsString()
   status?: string;
 
+  @ApiPropertyOptional()
   @IsOptional()
   @IsString()
   username?: string;
 
+  @ApiPropertyOptional()
   @IsOptional()
   @IsInt()
   gender?: number;
 
+  @ApiPropertyOptional()
+  @IsBoolean()
+  @IsOptional()
+  isAdmin?: boolean;
+
+  @ApiPropertyOptional()
   @IsOptional()
   @IsInt()
   departmentId?: number;

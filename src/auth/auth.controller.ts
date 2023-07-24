@@ -12,7 +12,7 @@ import { Public } from '../common';
 import { AuthService } from './auth.service';
 import { LoginDto, RefreshTokenDto, RegisterDto, Token } from './dto';
 
-@Controller('auth')
+@Controller('api/auth')
 @ApiTags('auth')
 export class AuthController {
   constructor(private readonly auth: AuthService) {}
@@ -23,15 +23,8 @@ export class AuthController {
   @ApiBadRequestResponse({ description: 'Invalid request body' })
   @ApiUnauthorizedResponse({ description: 'Invalid password' })
   @ApiNotFoundResponse({ description: 'No user found for email' })
-  async login(@Body() { email, password }: LoginDto) {
-    const { accessToken, refreshToken } = await this.auth.login(
-      email.toLowerCase(),
-      password,
-    );
-    return {
-      accessToken,
-      refreshToken,
-    };
+  login(@Body() { email, password }: LoginDto) {
+    return this.auth.login(email, password);
   }
 
   @Public()

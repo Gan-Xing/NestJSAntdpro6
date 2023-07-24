@@ -17,7 +17,7 @@ const Config: Configs = {
     path: process.env.SWAGGER_PATH || 'api',
   },
   security: {
-    expiresIn: process.env.SECURITY_EXPIRES_IN || '2m',
+    expiresIn: process.env.SECURITY_EXPIRES_IN || '2h',
     refreshIn: process.env.SECURITY_REFRESH_IN || '7d',
     bcryptSaltOrRound: parseInt(process.env.SECURITY_BCRYPT_SALT) || 10,
   },
