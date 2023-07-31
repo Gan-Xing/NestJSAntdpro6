@@ -43,8 +43,13 @@ export class UpdateUserDto extends PartialType(CreateUserDto) {
 
   @ApiPropertyOptional()
   @IsOptional()
-  @IsInt()
-  gender?: number;
+  @IsString()
+  avatar?: string;
+
+  @ApiPropertyOptional()
+  @IsOptional()
+  @IsString()
+  gender?: string;
 
   @ApiPropertyOptional()
   @IsBoolean()

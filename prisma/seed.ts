@@ -37,9 +37,9 @@ async function createAdminUser() {
       roles: {
         connect: { id: adminRole.id },
       },
-      status: 'Active',
+      status: '1',
       username: 'Admin',
-      gender: 1,
+      gender: '1',
       departmentId: 1, // This department ID should exist
     },
   });
@@ -69,9 +69,9 @@ async function createDebugUsers() {
           roles: {
             connect: { id: userRole.id },
           },
-          status: 'Active',
+          status: '1',
           username: `User${i}`,
-          gender: i % 2, // Alternate gender
+          gender: '1', // Alternate gender
           departmentId: 1,
         },
       });
@@ -87,8 +87,8 @@ async function createArticles() {
       email: 'sabin@adams.com',
       username: 'Sabin Adams',
       password: 'password-sabin',
-      status: 'Active',
-      gender: 1,
+      status: '1',
+      gender: '1',
       departmentId: 1,
     },
   });
@@ -99,8 +99,8 @@ async function createArticles() {
       email: 'alex@ruheni.com',
       username: 'Alex Ruheni',
       password: 'password-alex',
-      status: 'Active',
-      gender: 1,
+      status: '1',
+      gender: '1',
       departmentId: 1,
     },
   });
@@ -156,8 +156,8 @@ async function updateArticles() {
       email: 'sabin@adams.com',
       username: 'Sabin Adams',
       password: passwordSabin,
-      status: 'Active',
-      gender: 1,
+      status: '1',
+      gender: '1',
       departmentId: 1,
     },
   });
@@ -170,8 +170,8 @@ async function updateArticles() {
       email: 'alex@ruheni.com',
       username: 'Alex Ruheni',
       password: passwordAlex,
-      status: 'Active',
-      gender: 1,
+      status: '1',
+      gender: '1',
       departmentId: 1,
     },
   });

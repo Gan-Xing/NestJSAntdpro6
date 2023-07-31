@@ -26,6 +26,10 @@ import { UsersModule } from './users/users.module';
 import { PasswordModule } from './password/password.module';
 import { AppController } from './app.controller';
 import { AppService } from './app.service';
+import { RolesModule } from './roles/roles.module';
+import { PermissionsModule } from './permissions/permissions.module';
+import { PermissiongroupsModule } from './permissiongroups/permissiongroups.module';
+import { MenusModule } from './menus/menus.module';
 
 @Module({
   imports: [
@@ -38,6 +42,10 @@ import { AppService } from './app.service';
       load: [Config],
     }),
     PasswordModule,
+    RolesModule,
+    PermissionsModule,
+    PermissiongroupsModule,
+    MenusModule,
   ],
   controllers: [AppController],
   providers: [

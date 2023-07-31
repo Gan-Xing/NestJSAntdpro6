@@ -11,37 +11,44 @@ export class UsersService {
     private passwordService: PasswordService,
   ) {}
   // user.service.ts
-  async create(createUserDto: CreateUserDto): Promise<User> {
+  async create(createUser: CreateUserDto): Promise<User> {
     const hashedPassword = await this.passwordService.hashPassword(
-      createUserDto.password,
+      createUser.password,
     );
 
     // 在这里处理一个角色ID数组
     const roles = await this.prisma.role.findMany({
-      where: { id: { in: createUserDto.roles } },
+      where: { id: { in: createUser.roles } },
     });
 
-    if (roles.length !== createUserDto.roles.length) {
+    if (roles.length !== createUser.roles.length) {
       throw new Error(`Some roles do not exist`);
     }
 
     return this.prisma.user.create({
       data: {
-        email: createUserDto.email,
+        avatar:
+          createUser?.avatar || 'https://gravatar.com/avatar/0000?d=mp&f=y',
+        isAdmin: false,
+        email: createUser.email,
         password: hashedPassword,
         roles: {
           connect: roles.map((role) => ({ id: role.id })), // 连接多个角色
         },
-        status: createUserDto.status,
-        username: createUserDto.username,
-        gender: createUserDto.gender,
-        departmentId: createUserDto.departmentId,
+        status: createUser.status,
+        username: createUser.username,
+        gender: createUser.gender,
+        departmentId: createUser.departmentId,
       },
     });
   }
 
   findAll() {
-    return this.prisma.user.findMany();
+    return this.prisma.user.findMany({
+      include: {
+        roles: true,
+      },
+    });
   }
 
   async findOne(id: number): Promise<User | null> {
@@ -58,6 +65,7 @@ export class UsersService {
     const { roles, ...otherData } = updateUserDto;
 
     let rolesUpdate;
+
 
     if (roles) {
       // 如果传递了角色ID，处理它们

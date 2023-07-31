@@ -30,7 +30,7 @@ export class UsersController {
     return new UserEntity(await this.usersService.create(createUserDto));
   }
 
-  @Get('all')
+  @Get()
   // @UseGuards(JwtAuthGuard) //单独针对某个路由进行权限控制，目前已经做了全局控制，此处可以删除
   @ApiBearerAuth()
   @ApiOkResponse({ description: 'Get all users.', type: [UserEntity] }) // 多个User的数组，使用type: [User]
@@ -39,7 +39,7 @@ export class UsersController {
     return users.map((user) => new UserEntity(user));
   }
 
-  @Get()
+  @Get('/current')
   @ApiBearerAuth()
   @ApiOkResponse({ description: 'Get current user.', type: UserEntity })
   async findCurrent(@Req() req) {

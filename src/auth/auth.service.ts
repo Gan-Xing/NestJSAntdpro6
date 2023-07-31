@@ -46,10 +46,10 @@ export class AuthService {
         roles: {
           connect: [{ id: defaultRole.id }], // 连接到默认角色
         },
-        status: 'ACTIVE', // 或其他你认为适合的默认状态
+        status: '1',
         username: registerUser.username,
         // 根据你的业务逻辑设定默认的gender和departmentId
-        gender: 0,
+        gender: '1',
         departmentId: 1,
       },
     });
@@ -86,8 +86,22 @@ export class AuthService {
     // Step 3: Generate a JWT containing the user's ID and return it
     const tokens = await this.generateTokens({ userId: user.id });
     await this.updateRtHash(user.id, tokens.refreshToken);
-
     return tokens;
+  }
+
+  async logout(userId: number): Promise<boolean> {
+    await this.prisma.user.updateMany({
+      where: {
+        id: userId,
+        hashedRt: {
+          not: null,
+        },
+      },
+      data: {
+        hashedRt: null,
+      },
+    });
+    return true;
   }
 
   private generateAccessToken(payload: { userId: number }) {

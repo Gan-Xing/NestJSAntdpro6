@@ -27,7 +27,10 @@ export class UserEntity implements User {
   username: string;
 
   @ApiProperty()
-  gender: number;
+  avatar: string;
+
+  @ApiProperty()
+  gender: string;
 
   @ApiProperty()
   isAdmin: boolean;

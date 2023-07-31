@@ -1,5 +1,12 @@
 // src/auth/auth.controller.ts
-import { Body, Controller, Post } from '@nestjs/common';
+import {
+  Body,
+  Controller,
+  Post,
+  HttpCode,
+  HttpStatus,
+  Request,
+} from '@nestjs/common';
 import {
   ApiBadRequestResponse,
   ApiOkResponse,
@@ -25,6 +32,13 @@ export class AuthController {
   @ApiNotFoundResponse({ description: 'No user found for email' })
   login(@Body() { email, password }: LoginDto) {
     return this.auth.login(email, password);
+  }
+
+  @Post('logout')
+  @HttpCode(HttpStatus.OK)
+  logout(@Request() req): Promise<boolean> {
+    const id = req.user.id;
+    return this.auth.logout(id);
   }
 
   @Public()

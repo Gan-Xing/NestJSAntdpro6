@@ -32,9 +32,14 @@ export class CreateUserDto {
   status: string;
 
   @ApiProperty()
+  @IsString()
+  @IsNotEmpty()
+  avatar: string;
+
+  @ApiProperty()
   @IsInt()
   @IsNotEmpty()
-  gender: number;
+  gender: string;
 
   @ApiProperty()
   @IsBoolean()
