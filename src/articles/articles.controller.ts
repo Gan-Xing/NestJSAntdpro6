@@ -34,6 +34,7 @@ export class ArticlesController {
   }
 
   @Get()
+  @ApiBearerAuth()
   @ApiOkResponse({ type: ArticleEntity, isArray: true })
   async findAll() {
     const articles = await this.articlesService.findAll();

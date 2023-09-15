@@ -12,6 +12,7 @@ import {
   ApiOkResponse,
   ApiTags,
   ApiUnauthorizedResponse,
+  ApiBearerAuth,
   ApiNotFoundResponse,
   ApiCreatedResponse,
 } from '@nestjs/swagger';
@@ -35,6 +36,7 @@ export class AuthController {
   }
 
   @Post('logout')
+  @ApiBearerAuth()
   @HttpCode(HttpStatus.OK)
   logout(@Request() req): Promise<boolean> {
     const id = req.user.id;
@@ -49,6 +51,7 @@ export class AuthController {
     return this.auth.register(createUserDto);
   }
   @Post('refresh')
+  @ApiBearerAuth()
   @ApiCreatedResponse({ description: 'Refresh user token.' })
   async refresh(@Body('refreshToken') { refreshToken }: RefreshTokenDto) {
     return this.auth.refreshToken(refreshToken);

@@ -24,6 +24,7 @@ export class RolesController {
   constructor(private readonly rolesService: RolesService) {}
 
   @Post()
+  @ApiBearerAuth()
   @ApiCreatedResponse({ description: 'Create a role.', type: RoleEntity })
   async create(@Body() createRoleDto: CreateRoleDto) {
     return new RoleEntity(await this.rolesService.create(createRoleDto));
