@@ -27,7 +27,7 @@ async function bootstrap() {
 
   setupSwagger(app);
 
-  await app.listen(3000);
+  await app.listen(3030);
 }
 
 bootstrap();
