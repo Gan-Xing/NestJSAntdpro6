@@ -1,197 +1,106 @@
 import { PrismaClient } from '@prisma/client';
-import { hash } from 'bcrypt';
+import { fakerZH_CN as faker } from '@faker-js/faker';
 
-// Initialize the Prisma Client
 const prisma = new PrismaClient();
-const roundsOfHashing = 10;
 
-async function createAdminUser() {
-  // First, check if an admin user already exists
-  const existingAdmin = await prisma.user.findUnique({
-    where: { email: 'admin@example.com' },
-  });
-
-  // If an admin user already exists, do not create a new one
-  if (existingAdmin) {
-    return;
-  }
-
-  // Otherwise, create a new admin user
-  const hashedPassword = await hash('admin23', 10); // The password should be more complex and difficult to guess
-
-  let adminRole = await prisma.role.findUnique({
-    where: { name: 'admin' }, // Try to find a role named "admin"
-  });
-
-  // If the admin role doesn't exist, create it
-  if (!adminRole) {
-    adminRole = await prisma.role.create({
-      data: { name: 'admin' },
-    });
-  }
-
-  return prisma.user.create({
-    data: {
-      email: 'admin@example.com',
-      password: hashedPassword,
-      roles: {
-        connect: { id: adminRole.id },
-      },
-      status: '1',
-      username: 'Admin',
-      gender: '1',
-      departmentId: 1, // This department ID should exist
-    },
-  });
+async function main() {
+  await createRoles();
+  await createPermissionGroups();
+  await createPermissions();
+  await createUsers();
+  await createArticles();
 }
 
-async function createDebugUsers() {
-  let userRole = await prisma.role.findUnique({
-    where: { name: 'user' },
-  });
-
-  if (!userRole) {
-    userRole = await prisma.role.create({
-      data: { name: 'user' },
-    });
-  }
-
+async function createRoles() {
   for (let i = 0; i < 10; i++) {
-    // Create 10 debug users
-    const email = `user${i}@example.com`;
-    const existingUser = await prisma.user.findUnique({ where: { email } });
-    if (!existingUser) {
-      const hashedPassword = await hash(`user${i}Pass`, 10);
-      await prisma.user.create({
-        data: {
-          email: `user${i}@example.com`,
-          password: hashedPassword,
-          roles: {
-            connect: { id: userRole.id },
-          },
-          status: '1',
-          username: `User${i}`,
-          gender: '1', // Alternate gender
-          departmentId: 1,
-        },
+    const roleName = `role${i}`;
+    const existingRole = await prisma.role.findUnique({
+      where: { name: roleName },
+    });
+
+    if (!existingRole) {
+      await prisma.role.create({
+        data: { name: roleName },
       });
     }
   }
 }
 
+async function createPermissionGroups() {
+  for (let i = 0; i < 10; i++) {
+    await prisma.permissionGroup.create({
+      data: {
+        name: faker.commerce.department(),
+      },
+    });
+  }
+}
+
+async function createPermissions() {
+  const groups = await prisma.permissionGroup.findMany();
+  const roles = await prisma.role.findMany();
+
+  for (let i = 0; i < 10; i++) {
+    await prisma.permission.create({
+      data: {
+        name: faker.lorem.word(),
+        action: faker.lorem.word(),
+        path: faker.internet.url(),
+        permissionGroupId: groups[Math.floor(Math.random() * groups.length)].id,
+        roles: {
+          connect: roles
+            .slice(0, Math.floor(Math.random() * roles.length + 1))
+            .map((role) => ({ id: role.id })),
+        },
+      },
+    });
+  }
+}
+
+async function createUsers() {
+  const roles = await prisma.role.findMany();
+
+  for (let i = 0; i < 100; i++) {
+    await prisma.user.create({
+      data: {
+        email: faker.internet.email(),
+        password: faker.internet.password(),
+        username: faker.internet.userName(),
+        gender: faker.helpers.arrayElement(['Male', 'Female', 'Other']),
+        departmentId: Math.floor(Math.random() * 10) + 1,
+        isAdmin: faker.datatype.boolean(),
+        avatar: faker.internet.avatar(),
+        roles: {
+          connect: roles
+            .slice(0, Math.floor(Math.random() * roles.length + 1))
+            .map((role) => ({ id: role.id })),
+        },
+      },
+    });
+  }
+}
+
 async function createArticles() {
-  const user1 = await prisma.user.upsert({
-    where: { email: 'sabin@adams.com' },
-    update: {},
-    create: {
-      email: 'sabin@adams.com',
-      username: 'Sabin Adams',
-      password: 'password-sabin',
-      status: '1',
-      gender: '1',
-      departmentId: 1,
-    },
-  });
-  const user2 = await prisma.user.upsert({
-    where: { email: 'alex@ruheni.com' },
-    update: {},
-    create: {
-      email: 'alex@ruheni.com',
-      username: 'Alex Ruheni',
-      password: 'password-alex',
-      status: '1',
-      gender: '1',
-      departmentId: 1,
-    },
-  });
-  const post1 = await prisma.article.upsert({
-    where: { title: 'Prisma Adds Support for MongoDB' },
-    update: { authorId: user1.id },
-    create: {
-      title: 'Prisma Adds Support for MongoDB',
-      body: 'Support for MongoDB has been one of the most requested features since the initial release of...',
-      description:
-        "We are excited to share that today's Prisma ORM release adds stable support for MongoDB!",
-      published: false,
-      authorId: user1.id,
-    },
-  });
+  const users = await prisma.user.findMany();
 
-  const post2 = await prisma.article.upsert({
-    where: { title: "What's new in Prisma? (Q1/22)" },
-    update: { authorId: user2.id },
-    create: {
-      title: "What's new in Prisma? (Q1/22)",
-      body: 'Our engineers have been working hard, issuing new releases with many improvements...',
-      description:
-        'Learn about everything in the Prisma ecosystem and community from January to March 2022.',
-      published: true,
-      authorId: user2.id,
-    },
-  });
-  const post3 = await prisma.article.upsert({
-    where: { title: 'Prisma Client Just Became a Lot More Flexible' },
-    update: {},
-    create: {
-      title: 'Prisma Client Just Became a Lot More Flexible',
-      body: 'Prisma Client extensions provide a powerful new way to add functionality to Prisma in a type-safe manner...',
-      description:
-        'This article will explore various ways you can use Prisma Client extensions to add custom functionality to Prisma Client..',
-      published: true,
-    },
-  });
-
-  console.log({ user1, user2, post1, post2, post3 });
+  for (let i = 0; i < 10; i++) {
+    await prisma.article.create({
+      data: {
+        title: faker.lorem.words(5),
+        description: faker.lorem.sentences(3),
+        body: faker.lorem.paragraphs(3),
+        published: faker.datatype.boolean(),
+        authorId: users[Math.floor(Math.random() * users.length)].id,
+      },
+    });
+  }
 }
 
-async function updateArticles() {
-  const passwordSabin = await hash('password-sabin', roundsOfHashing);
-  const passwordAlex = await hash('password-alex', roundsOfHashing);
-  const user1 = await prisma.user.upsert({
-    where: { email: 'sabin@adams.com' },
-    update: {
-      password: passwordSabin,
-    },
-    create: {
-      email: 'sabin@adams.com',
-      username: 'Sabin Adams',
-      password: passwordSabin,
-      status: '1',
-      gender: '1',
-      departmentId: 1,
-    },
-  });
-  const user2 = await prisma.user.upsert({
-    where: { email: 'alex@ruheni.com' },
-    update: {
-      password: passwordAlex,
-    },
-    create: {
-      email: 'alex@ruheni.com',
-      username: 'Alex Ruheni',
-      password: passwordAlex,
-      status: '1',
-      gender: '1',
-      departmentId: 1,
-    },
-  });
-  console.log(user1, user2);
-}
-
-async function seed() {
-  await createAdminUser();
-  await createDebugUsers();
-  await createArticles();
-  await updateArticles();
-}
-
-// Execute the seed function
-seed()
+main()
   .catch((e) => {
     console.error(e);
     process.exit(1);
   })
   .finally(async () => {
-    // Close the Prisma Client at the end
     await prisma.$disconnect();
   });
