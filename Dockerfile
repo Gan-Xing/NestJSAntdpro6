@@ -11,20 +11,15 @@ RUN npm install -g pnpm && pnpm install
 # 拷贝应用代码
 COPY . .
 
-# 在此处生成 Prisma 客户端
+# 生成 Prisma 客户端和运行迁移
 RUN npx prisma generate
+RUN npx prisma migrate deploy
 
 # 编译 NestJS 项目
 RUN pnpm run build
 
-# 拷贝入口点脚本
-COPY entrypoint.sh ./entrypoint.sh
-
 # 开放端口
 EXPOSE 3030
 
-# 给脚本执行权限
-RUN chmod +x entrypoint.sh
-
-# 设置脚本为入口点
-ENTRYPOINT [ "./entrypoint.sh" ]
+# 设置启动命令
+CMD [ "pnpm", "run", "start:prod" ]

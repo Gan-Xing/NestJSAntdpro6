@@ -1,54 +1,13 @@
 version: '3.8'
-# 指定 docker-compose 文件的版本。版本 '3.8' 提供了一组已稳定的特性和选项。
 
 services:
-  # 定义要创建和运行的服务列表
-
   app:
-    # 定义一个服务名为 'app'
-
     container_name: nestjs_app
-    # 指定 Docker 容器的名字为 'nestjs_app'
-
     build:
       context: .
-      # 构建上下文路径为当前目录，即 Dockerfile 位于当前目录
-
     ports:
       - '3030:3030'
-      # 端口映射: 将容器的 3030 端口映射到宿主机的 3030 端口
-
-    depends_on:
-      - db
-      # 依赖于 'db' 服务，确保 'db' 服务先于 'app' 服务启动
-
     environment:
-      DATABASE_URL: postgresql://prisma:prisma@db:5432/prisma
-      # 环境变量: 设置数据库连接 URL，其中包含用户名、密码、数据库服务名和数据库名
-
-  db:
-    # 定义另一个服务名为 'db'
-
-    container_name: postgres_db
-    # 指定 Docker 容器的名字为 'postgres_db'
-
-    image: postgres:16
-    # 使用 'postgres' 官方 Docker 镜像，并指定标签为 '16' 来使用特定版本的 Postgres
-
-    environment:
-      POSTGRES_USER: prisma
-      # 环境变量: 设置 PostgreSQL 数据库的用户名为 'prisma'
-
-      POSTGRES_PASSWORD: prisma
-      # 环境变量: 设置 PostgreSQL 数据库的密码为 'prisma'
-
-      POSTGRES_DB: prisma
-      # 环境变量: 设置 PostgreSQL 数据库的数据库名为 'prisma'
-
-    volumes:
-      - db_data:/var/lib/postgresql/data
-      # 卷映射: 将名为 'db_data' 的 Docker 卷映射到容器内的 '/var/lib/postgresql/data'，用于持久化数据库数据
-
-volumes:
-  db_data:
-  # 定义一个 Docker 卷名为 'db_data'，用于存储和持久化 PostgreSQL 数据库的数据
+      - DATABASE_URL=${DATABASE_URL}
+    env_file:
+      - ./.env
