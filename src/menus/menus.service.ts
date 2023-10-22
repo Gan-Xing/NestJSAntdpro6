@@ -42,6 +42,51 @@ export class MenusService {
     });
   }
 
+  async findAllPaged(current: number, pageSize: number, name?: string) {
+    let filters: any;
+    let include: any;
+
+    if (name) {
+      filters = {
+        name: {
+          contains: name,
+        },
+      };
+      include = {
+        permissions: true,
+      };
+    } else {
+      filters = {
+        parentId: null,
+      };
+      include = {
+        permissions: true,
+        children: true,
+      };
+    }
+
+    const total = await this.prisma.permissionGroup.count({
+      where: filters,
+    });
+
+    const data = await this.prisma.permissionGroup.findMany({
+      skip: (current - 1) * pageSize,
+      take: pageSize,
+      where: filters,
+      include: include,
+    });
+
+    return {
+      data: data,
+      pagination: {
+        current: current,
+        pageSize: pageSize,
+        total: total,
+        totalPages: Math.ceil(total / pageSize),
+      },
+    };
+  }
+
   async findOne(id: number) {
     return await this.prisma.permissionGroup.findUnique({
       where: { id },
@@ -78,6 +123,12 @@ export class MenusService {
     });
   }
 
+  async removeMenusByIds(ids: number[]) {
+    for (const id of ids) {
+      await this.remove(id);
+    }
+  }
+
   async remove(id: number) {
     const existingMenu = await this.prisma.permissionGroup.findUnique({
       where: { id },
@@ -86,16 +137,33 @@ export class MenusService {
       throw new Error(`Menu with id ${id} does not exist`);
     }
 
-    // Recursively remove all child menus
-    const childMenus = await this.prisma.permissionGroup.findMany({
-      where: { parentId: id },
-    });
-    for (const childMenu of childMenus) {
-      await this.remove(childMenu.id);
-    }
+    // Recursively get all child menu IDs
+    const childMenuIds = await this.getChildMenuIds(id);
 
+    // Delete all child menus in one go
+    await this.prisma.permissionGroup.deleteMany({
+      where: { id: { in: childMenuIds } },
+    });
+
+    // Delete the parent menu
     return await this.prisma.permissionGroup.delete({
       where: { id },
     });
+  }
+
+  async getChildMenuIds(
+    parentId: number,
+    ids: number[] = [],
+  ): Promise<number[]> {
+    const childMenus = await this.prisma.permissionGroup.findMany({
+      where: { parentId },
+    });
+
+    for (const childMenu of childMenus) {
+      ids.push(childMenu.id);
+      await this.getChildMenuIds(childMenu.id, ids);
+    }
+
+    return ids;
   }
 }

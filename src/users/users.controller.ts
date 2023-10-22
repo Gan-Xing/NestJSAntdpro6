@@ -8,6 +8,7 @@ import {
   Delete,
   ParseIntPipe,
   Req,
+  ParseArrayPipe,
 } from '@nestjs/common';
 import {
   ApiTags,
@@ -63,6 +64,13 @@ export class UsersController {
     @Body() updateUserDto: UpdateUserDto,
   ) {
     return new UserEntity(await this.usersService.update(id, updateUserDto));
+  }
+
+  @Delete()
+  @ApiBearerAuth()
+  @ApiOkResponse({ description: 'Delete users by their IDs.' })
+  async removeByIds(@Body('ids', ParseArrayPipe) ids: number[]) {
+    return this.usersService.removeByIds(ids);
   }
 
   @Delete(':id')

@@ -66,7 +66,6 @@ export class UsersService {
 
     let rolesUpdate;
 
-
     if (roles) {
       // 如果传递了角色ID，处理它们
       const roleObjects = await this.prisma.role.findMany({
@@ -94,6 +93,10 @@ export class UsersService {
         ...(rolesUpdate && { roles: rolesUpdate }),
       },
     });
+  }
+
+  removeByIds(ids: number[]) {
+    return this.prisma.user.deleteMany({ where: { id: { in: ids } } });
   }
 
   remove(id: number) {
