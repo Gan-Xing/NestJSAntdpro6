@@ -9,12 +9,14 @@ import {
   ParseIntPipe,
   Req,
   ParseArrayPipe,
+  Query,
 } from '@nestjs/common';
 import {
   ApiTags,
   ApiOkResponse,
   ApiCreatedResponse,
   ApiBearerAuth,
+  ApiQuery,
 } from '@nestjs/swagger';
 import { UsersService } from './users.service';
 import { CreateUserDto, UpdateUserDto } from './dto';
@@ -33,12 +35,37 @@ export class UsersController {
   }
 
   @Get()
-  // @UseGuards(JwtAuthGuard) //单独针对某个路由进行权限控制，目前已经做了全局控制，此处可以删除
   @ApiBearerAuth()
-  @ApiOkResponse({ description: 'Get all users.', type: [UserEntity] }) // 多个User的数组，使用type: [User]
+  @ApiOkResponse({ description: 'Get all users.', type: [UserEntity] })
   async findAll() {
     const users = await this.usersService.findAll();
     return users.map((user) => new UserEntity(user));
+  }
+
+  @Get('page')
+  @ApiBearerAuth()
+  @ApiQuery({ name: 'current', required: true, type: Number })
+  @ApiQuery({ name: 'pageSize', required: true, type: Number })
+  @ApiQuery({ name: 'sorter', required: false, type: String })
+  @ApiQuery({ name: 'name', required: false, type: String })
+  // ...其他的可选查询参数ApiQuery
+  async findAllPaged(
+    @Query('current', ParseIntPipe) current: number,
+    @Query('pageSize', ParseIntPipe) pageSize: number,
+    @Query('sorter') sorter: string,
+    @Query() filters: Record<string, any>,
+  ) {
+    const sortObject = sorter ? JSON.parse(sorter) : null;
+
+    // 移除已经独立处理的属性，避免冲突
+    delete filters.current;
+    delete filters.pageSize;
+    delete filters.sorter;
+
+    return await this.usersService.findAllPaged(
+      { current, pageSize, ...filters },
+      sortObject,
+    );
   }
 
   @Get('/current')
@@ -63,7 +90,9 @@ export class UsersController {
     @Param('id', ParseIntPipe) id: number,
     @Body() updateUserDto: UpdateUserDto,
   ) {
-    return new UserEntity(await this.usersService.update(id, updateUserDto));
+    return new UserEntity(
+      await this.usersService.updateUser(id, updateUserDto),
+    );
   }
 
   @Delete()

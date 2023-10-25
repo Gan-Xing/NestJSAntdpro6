@@ -1,8 +1,9 @@
 import { Injectable } from '@nestjs/common';
-import { User } from '@prisma/client';
+import { Prisma, User } from '@prisma/client';
 import { PrismaService } from 'src/prisma/prisma.service';
 import { PasswordService } from 'src/password/password.service';
 import { CreateUserDto, UpdateUserDto } from './dto';
+import { PagedQuery, SortObject } from 'src/common';
 
 @Injectable()
 export class UsersService {
@@ -38,7 +39,7 @@ export class UsersService {
         status: createUser.status,
         username: createUser.username,
         gender: createUser.gender,
-        departmentId: createUser.departmentId,
+        departmentId: 123,
       },
     });
   }
@@ -51,6 +52,57 @@ export class UsersService {
     });
   }
 
+  async findAllPaged(query: PagedQuery, sortObject: SortObject) {
+    const { current, pageSize, ...filters } = query;
+
+    if (current <= 0 || pageSize <= 0) {
+      throw new Error('Invalid pagination parameters');
+    }
+
+    const where: Prisma.UserWhereInput = Object.entries(filters).reduce(
+      (acc, [key, value]) => {
+        if (value) {
+          if (key === 'username') {
+            acc[key] = { contains: value };
+          } else if (key === 'isAdmin') {
+            console.log('value', value);
+            console.log('value === true', '=======' + value + '=======');
+            console.log('typeof', typeof value);
+            acc[key] = value === 'true'; // 将字符串转换为布尔值
+          } else {
+            acc[key] = value;
+          }
+        }
+        return acc;
+      },
+      {},
+    );
+
+    const orderBy: Prisma.UserOrderByWithRelationInput = { ...sortObject };
+
+    const total = await this.prisma.user.count({ where });
+
+    const data = await this.prisma.user.findMany({
+      where,
+      orderBy,
+      skip: (current - 1) * pageSize,
+      take: pageSize,
+      include: {
+        roles: true,
+      },
+    });
+
+    return {
+      data: data,
+      pagination: {
+        current: current,
+        pageSize: pageSize,
+        total: total,
+        totalPages: Math.ceil(total / pageSize),
+      },
+    };
+  }
+
   async findOne(id: number): Promise<User | null> {
     return this.prisma.user.findUnique({ where: { id } });
   }
@@ -61,10 +113,11 @@ export class UsersService {
     });
   }
 
-  async update(id: number, updateUserDto: UpdateUserDto): Promise<User> {
-    const { roles, ...otherData } = updateUserDto;
+  async updateUser(id: number, updateUserDto: UpdateUserDto): Promise<User> {
+    const { roles, password, ...otherData } = updateUserDto; // 解构password
 
     let rolesUpdate;
+    let hashedPassword;
 
     if (roles) {
       // 如果传递了角色ID，处理它们
@@ -80,16 +133,16 @@ export class UsersService {
         connect: roleObjects.map((role) => ({ id: role.id })),
       };
     }
-    if (updateUserDto.password) {
-      updateUserDto.password = await this.passwordService.hashPassword(
-        updateUserDto.password,
-      );
+
+    if (password) {
+      hashedPassword = await this.passwordService.hashPassword(password);
     }
 
     return this.prisma.user.update({
       where: { id: id },
       data: {
         ...otherData,
+        ...(hashedPassword && { password: hashedPassword }), // 明确地添加哈希后的密码
         ...(rolesUpdate && { roles: rolesUpdate }),
       },
     });

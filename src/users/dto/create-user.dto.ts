@@ -6,7 +6,7 @@ import {
   IsInt,
   IsArray,
   MinLength,
-  IsBoolean,
+  // IsBoolean,
 } from 'class-validator';
 
 export class CreateUserDto {
@@ -32,23 +32,18 @@ export class CreateUserDto {
   status: string;
 
   @ApiProperty()
-  @IsString()
-  @IsNotEmpty()
   avatar: string;
 
   @ApiProperty()
-  @IsInt()
   @IsNotEmpty()
   gender: string;
 
   @ApiProperty()
-  @IsBoolean()
-  @IsNotEmpty()
   isAdmin: boolean;
 
   @ApiProperty()
-  @IsInt()
-  @IsNotEmpty()
+  // @IsInt()
+  // @IsNotEmpty()
   departmentId: number;
 
   @ApiProperty({ isArray: true, type: 'number' }) // 修改为角色 ID 数组
