@@ -21,6 +21,8 @@ import {
 import { UsersService } from './users.service';
 import { CreateUserDto, UpdateUserDto } from './dto';
 import { UserEntity } from './entities';
+import { Permissions } from 'src/common';
+import { PermissionEntity } from 'src/permissions/entities';
 
 @Controller('api/users')
 @ApiTags('users')
@@ -30,6 +32,7 @@ export class UsersController {
   @Post()
   @ApiBearerAuth()
   @ApiCreatedResponse({ description: 'Create a user.', type: UserEntity })
+  @Permissions(new PermissionEntity({ action: 'POST', path: '/users' }))
   async create(@Body() createUserDto: CreateUserDto) {
     return new UserEntity(await this.usersService.create(createUserDto));
   }
@@ -37,6 +40,7 @@ export class UsersController {
   @Get()
   @ApiBearerAuth()
   @ApiOkResponse({ description: 'Get all users.', type: [UserEntity] })
+  @Permissions(new PermissionEntity({ action: 'GET', path: '/users' }))
   async findAll() {
     const users = await this.usersService.findAll();
     return users.map((user) => new UserEntity(user));
@@ -48,6 +52,7 @@ export class UsersController {
   @ApiQuery({ name: 'pageSize', required: true, type: Number })
   @ApiQuery({ name: 'sorter', required: false, type: String })
   @ApiQuery({ name: 'name', required: false, type: String })
+  // @Permissions(new PermissionEntity({ action: 'GET', path: '/users' }))
   // ...其他的可选查询参数ApiQuery
   async findAllPaged(
     @Query('current', ParseIntPipe) current: number,
@@ -72,13 +77,16 @@ export class UsersController {
   @ApiBearerAuth()
   @ApiOkResponse({ description: 'Get current user.', type: UserEntity })
   async findCurrent(@Req() req) {
-    // const user = await this.usersService.findOne(req.user.id);
-    return new UserEntity(req.user);
+    const user = await this.usersService.findOneWithRolesAndPermissions(
+      req.user.id,
+    );
+    return new UserEntity(user);
   }
 
   @Get(':id')
   @ApiBearerAuth()
   @ApiOkResponse({ description: 'Find a user by id.', type: UserEntity }) // 单个User，直接使用type: User
+  @Permissions(new PermissionEntity({ action: 'GET', path: '/users' }))
   async findOne(@Param('id', ParseIntPipe) id: number) {
     return new UserEntity(await this.usersService.findOne(id));
   }
@@ -86,6 +94,7 @@ export class UsersController {
   @Patch(':id')
   @ApiBearerAuth()
   @ApiCreatedResponse({ description: 'Update a user by id.', type: UserEntity })
+  @Permissions(new PermissionEntity({ action: 'Patch', path: '/users' }))
   async update(
     @Param('id', ParseIntPipe) id: number,
     @Body() updateUserDto: UpdateUserDto,
@@ -98,6 +107,7 @@ export class UsersController {
   @Delete()
   @ApiBearerAuth()
   @ApiOkResponse({ description: 'Delete users by their IDs.' })
+  @Permissions(new PermissionEntity({ action: 'DELETE', path: '/users' }))
   async removeByIds(@Body('ids', ParseArrayPipe) ids: number[]) {
     return this.usersService.removeByIds(ids);
   }
@@ -105,6 +115,7 @@ export class UsersController {
   @Delete(':id')
   @ApiBearerAuth()
   @ApiOkResponse({ description: 'Delete a user by id.', type: UserEntity })
+  @Permissions(new PermissionEntity({ action: 'DELETE', path: '/users' }))
   async remove(@Param('id', ParseIntPipe) id: number) {
     return new UserEntity(await this.usersService.remove(id));
   }

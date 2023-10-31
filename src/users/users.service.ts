@@ -52,6 +52,10 @@ export class UsersService {
     });
   }
 
+  convertSortOrder(sortOrder: string): 'asc' | 'desc' {
+    return sortOrder === 'descend' ? 'desc' : 'asc';
+  }
+
   async findAllPaged(query: PagedQuery, sortObject: SortObject) {
     const { current, pageSize, ...filters } = query;
 
@@ -65,9 +69,6 @@ export class UsersService {
           if (key === 'username') {
             acc[key] = { contains: value };
           } else if (key === 'isAdmin') {
-            console.log('value', value);
-            console.log('value === true', '=======' + value + '=======');
-            console.log('typeof', typeof value);
             acc[key] = value === 'true'; // 将字符串转换为布尔值
           } else {
             acc[key] = value;
@@ -78,7 +79,12 @@ export class UsersService {
       {},
     );
 
-    const orderBy: Prisma.UserOrderByWithRelationInput = { ...sortObject };
+    // 转换 sortObject 到 Prisma 所需的格式
+    const orderBy: Prisma.UserOrderByWithRelationInput = {};
+    if (sortObject && Object.keys(sortObject).length > 0) {
+      const [key, value] = Object.entries(sortObject)[0];
+      orderBy[key] = this.convertSortOrder(value); // 调用 convertSortOrder 函数
+    }
 
     const total = await this.prisma.user.count({ where });
 
@@ -105,6 +111,19 @@ export class UsersService {
 
   async findOne(id: number): Promise<User | null> {
     return this.prisma.user.findUnique({ where: { id } });
+  }
+
+  async findOneWithRolesAndPermissions(id: number) {
+    return this.prisma.user.findUnique({
+      where: { id },
+      include: {
+        roles: {
+          include: {
+            permissions: true,
+          },
+        },
+      },
+    });
   }
 
   async findOneByEmail(email: string): Promise<User | null> {

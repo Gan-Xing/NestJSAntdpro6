@@ -61,7 +61,11 @@ export class MenusService {
       };
       include = {
         permissions: true,
-        children: true,
+        children: {
+          include: {
+            children: true, // to some depth as needed
+          },
+        },
       };
     }
 

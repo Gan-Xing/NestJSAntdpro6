@@ -17,6 +17,8 @@ import {
 import { RolesService } from './roles.service';
 import { CreateRoleDto, UpdateRoleDto } from './dto';
 import { RoleEntity } from './entities';
+import { Permissions } from 'src/common';
+import { PermissionEntity } from 'src/permissions/entities';
 
 @Controller('api/roles')
 @ApiTags('roles')
@@ -26,6 +28,7 @@ export class RolesController {
   @Post()
   @ApiBearerAuth()
   @ApiCreatedResponse({ description: 'Create a role.', type: RoleEntity })
+  @Permissions(new PermissionEntity({ action: 'POST', path: '/roles' }))
   async create(@Body() createRoleDto: CreateRoleDto) {
     return new RoleEntity(await this.rolesService.create(createRoleDto));
   }
@@ -33,6 +36,7 @@ export class RolesController {
   @Get()
   @ApiBearerAuth()
   @ApiOkResponse({ description: 'Get all roles.', type: [RoleEntity] })
+  @Permissions(new PermissionEntity({ action: 'GET', path: '/roles' }))
   async findAll() {
     const roles = await this.rolesService.findAll();
     return roles.map((role) => new RoleEntity(role));
@@ -44,6 +48,7 @@ export class RolesController {
     description: 'Delete multiple roles by ids.',
     type: RoleEntity,
   })
+  @Permissions(new PermissionEntity({ action: 'DELETE', path: '/roles' }))
   async removeMany(@Body() idsDto: { ids: number[] }) {
     return await this.rolesService.removeMany(idsDto.ids);
   }
@@ -51,6 +56,7 @@ export class RolesController {
   @Get(':id')
   @ApiBearerAuth()
   @ApiOkResponse({ description: 'Find a role by id.', type: RoleEntity })
+  @Permissions(new PermissionEntity({ action: 'GET', path: '/roles' }))
   async findOne(@Param('id', ParseIntPipe) id: number) {
     return new RoleEntity(await this.rolesService.findOne(id));
   }
@@ -58,6 +64,7 @@ export class RolesController {
   @Patch(':id')
   @ApiBearerAuth()
   @ApiCreatedResponse({ description: 'Update a role by id.', type: RoleEntity })
+  @Permissions(new PermissionEntity({ action: 'PATCH', path: '/roles' }))
   async update(
     @Param('id', ParseIntPipe) id: number,
     @Body() updateRoleDto: UpdateRoleDto,
@@ -68,6 +75,7 @@ export class RolesController {
   @Delete(':id')
   @ApiBearerAuth()
   @ApiOkResponse({ description: 'Delete a role by id.', type: RoleEntity })
+  @Permissions(new PermissionEntity({ action: 'DELETE', path: '/roles' }))
   async remove(@Param('id', ParseIntPipe) id: number) {
     return new RoleEntity(await this.rolesService.remove(id));
   }

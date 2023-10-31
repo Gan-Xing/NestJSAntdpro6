@@ -18,6 +18,7 @@ import {
   ApiCreatedResponse,
 } from '@nestjs/swagger';
 import { PermissionEntity } from './entities';
+import { Permissions } from 'src/common';
 
 @Controller('api/permissions')
 @ApiTags('permissions')
@@ -30,6 +31,7 @@ export class PermissionsController {
     description: 'Create a permission.',
     type: PermissionEntity,
   })
+  @Permissions(new PermissionEntity({ action: 'POST', path: '/permissions' }))
   async create(@Body() createPermissionDto: CreatePermissionDto) {
     return new PermissionEntity(
       await this.permissionsService.create(createPermissionDto),
@@ -42,6 +44,7 @@ export class PermissionsController {
     description: 'Get all permissions.',
     type: [PermissionEntity],
   })
+  @Permissions(new PermissionEntity({ action: 'GET', path: '/permissions' }))
   async findAll() {
     const permissions = await this.permissionsService.findAll();
     return permissions.map((permission) => new PermissionEntity(permission));
@@ -53,6 +56,7 @@ export class PermissionsController {
     description: 'Find a permission by id.',
     type: PermissionEntity,
   })
+  @Permissions(new PermissionEntity({ action: 'GET', path: '/permissions' }))
   async findOne(@Param('id', ParseIntPipe) id: number) {
     return new PermissionEntity(await this.permissionsService.findOne(id));
   }
@@ -63,6 +67,7 @@ export class PermissionsController {
     description: 'Update a permission by id.',
     type: PermissionEntity,
   })
+  @Permissions(new PermissionEntity({ action: 'PATCH', path: '/permissions' }))
   async update(
     @Param('id', ParseIntPipe) id: number,
     @Body() updatePermissionDto: UpdatePermissionDto,
@@ -78,6 +83,7 @@ export class PermissionsController {
     description: 'Delete multiple permissions by ids.',
     type: PermissionEntity,
   })
+  @Permissions(new PermissionEntity({ action: 'DELETE', path: '/permissions' }))
   async removeMany(@Body() idsDto: { ids: number[] }) {
     return await this.permissionsService.removeMany(idsDto.ids);
   }
@@ -88,6 +94,7 @@ export class PermissionsController {
     description: 'Delete a permission by id.',
     type: PermissionEntity,
   })
+  @Permissions(new PermissionEntity({ action: 'DELETE', path: '/permissions' }))
   async remove(@Param('id', ParseIntPipe) id: number) {
     return new PermissionEntity(await this.permissionsService.remove(id));
   }
