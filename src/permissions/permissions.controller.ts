@@ -67,7 +67,7 @@ export class PermissionsController {
     description: 'Update a permission by id.',
     type: PermissionEntity,
   })
-  @Permissions(new PermissionEntity({ action: 'PATCH', path: '/permissions' }))
+  @Permissions(new PermissionEntity({ action: 'Patch', path: '/permissions' }))
   async update(
     @Param('id', ParseIntPipe) id: number,
     @Body() updatePermissionDto: UpdatePermissionDto,

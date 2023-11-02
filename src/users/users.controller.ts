@@ -52,8 +52,7 @@ export class UsersController {
   @ApiQuery({ name: 'pageSize', required: true, type: Number })
   @ApiQuery({ name: 'sorter', required: false, type: String })
   @ApiQuery({ name: 'name', required: false, type: String })
-  // @Permissions(new PermissionEntity({ action: 'GET', path: '/users' }))
-  // ...其他的可选查询参数ApiQuery
+  @Permissions(new PermissionEntity({ action: 'GET', path: '/users' }))
   async findAllPaged(
     @Query('current', ParseIntPipe) current: number,
     @Query('pageSize', ParseIntPipe) pageSize: number,
