@@ -9,6 +9,7 @@ import {
   ParseIntPipe,
   ParseArrayPipe,
   Query,
+  Req,
 } from '@nestjs/common';
 import { MenusService } from './menus.service';
 import { CreateMenuDto, UpdateMenuDto } from './dto';
@@ -39,11 +40,11 @@ export class MenusController {
     return await this.menusService.findAllPaged(current, pageSize, name);
   }
 
-  @Get('/all')
+  @Get('/user')
   @ApiBearerAuth()
-  @Permissions(new PermissionEntity({ action: 'GET', path: '/menus' }))
-  async findAll() {
-    return await this.menusService.findAll();
+  async findMenuByUser(@Req() req) {
+    const userId = req.user.id;
+    return await this.menusService.findMenuByUser(userId);
   }
 
   @Get(':id')
@@ -55,7 +56,7 @@ export class MenusController {
 
   @Patch(':id')
   @ApiBearerAuth()
-  @Permissions(new PermissionEntity({ action: 'PATCH', path: '/menus' }))
+  @Permissions(new PermissionEntity({ action: 'Patch', path: '/menus' }))
   update(
     @Param('id', ParseIntPipe) id: number,
     @Body() updateMenuDto: UpdateMenuDto,

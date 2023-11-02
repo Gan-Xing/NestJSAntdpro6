@@ -1,10 +1,14 @@
 import { Injectable } from '@nestjs/common';
 import { PrismaService } from 'src/prisma/prisma.service';
+import { UsersService } from 'src/users/users.service';
 import { CreateMenuDto, UpdateMenuDto } from './dto';
 
 @Injectable()
 export class MenusService {
-  constructor(private prisma: PrismaService) {}
+  constructor(
+    private prisma: PrismaService,
+    private usersService: UsersService,
+  ) {}
 
   async create(createMenuDto: CreateMenuDto) {
     const { parentId, ...rest } = createMenuDto;
@@ -40,6 +44,41 @@ export class MenusService {
         },
       },
     });
+  }
+
+  async findMenuByUser(userId: number) {
+    const user = await this.usersService.findOneWithRolesAndPermissions(userId);
+    const allRoles = user.roles || [];
+    const allPermissionGroupIds = allRoles.flatMap((role) =>
+      role.permissions.map((permission) => permission.permissionGroupId),
+    );
+    const uniquePermissionGroupIds = [...new Set(allPermissionGroupIds)];
+
+    const allMenus = await this.findAll();
+    const filteredMenus = this.filterMenusByIds(
+      allMenus,
+      uniquePermissionGroupIds,
+    );
+    return filteredMenus;
+  }
+
+  private filterMenusByIds(menus, ids: number[]) {
+    return menus
+      .filter((menu) => {
+        return (
+          ids.includes(menu.id) ||
+          (menu.children &&
+            this.filterMenusByIds(menu.children, ids).length > 0)
+        );
+      })
+      .map((menu) => {
+        return {
+          ...menu,
+          children: menu.children
+            ? this.filterMenusByIds(menu.children, ids)
+            : [],
+        };
+      });
   }
 
   async findAllPaged(current: number, pageSize: number, name?: string) {
