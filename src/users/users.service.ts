@@ -135,34 +135,23 @@ export class UsersService {
   async updateUser(id: number, updateUserDto: UpdateUserDto): Promise<User> {
     const { roles, password, ...otherData } = updateUserDto; // 解构password
 
-    let rolesUpdate;
     let hashedPassword;
-
-    if (roles) {
-      // 如果传递了角色ID，处理它们
-      const roleObjects = await this.prisma.role.findMany({
-        where: { id: { in: roles } },
-      });
-
-      if (roleObjects.length !== roles.length) {
-        throw new Error(`Some roles do not exist`);
-      }
-
-      rolesUpdate = {
-        connect: roleObjects.map((role) => ({ id: role.id })),
-      };
-    }
 
     if (password) {
       hashedPassword = await this.passwordService.hashPassword(password);
     }
+
+    // 创建角色更新对象
+    const rolesUpdate = {
+      set: roles ? roles.map((role) => ({ id: role })) : [],
+    };
 
     return this.prisma.user.update({
       where: { id: id },
       data: {
         ...otherData,
         ...(hashedPassword && { password: hashedPassword }), // 明确地添加哈希后的密码
-        ...(rolesUpdate && { roles: rolesUpdate }),
+        roles: rolesUpdate,
       },
     });
   }

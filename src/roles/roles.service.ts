@@ -73,28 +73,18 @@ export class RolesService {
   async update(id: number, updateRoleDto: UpdateRoleDto): Promise<Role> {
     const { permissions, ...otherData } = updateRoleDto;
 
-    let permissionsUpdate;
-
-    if (permissions) {
-      // 如果传递了权限ID，处理它们
-      const permissionObjects = await this.prisma.permission.findMany({
-        where: { id: { in: permissions } },
-      });
-
-      if (permissionObjects.length !== permissions.length) {
-        throw new Error(`Some permissions do not exist`);
-      }
-
-      permissionsUpdate = {
-        connect: permissionObjects.map((permission) => ({ id: permission.id })),
-      };
-    }
+    // 创建权限更新对象
+    const permissionsUpdate = {
+      set: permissions
+        ? permissions.map((permission) => ({ id: permission }))
+        : [],
+    };
 
     return this.prisma.role.update({
       where: { id: id },
       data: {
         ...otherData,
-        ...(permissionsUpdate && { permissions: permissionsUpdate }),
+        permissions: permissionsUpdate,
       },
     });
   }
